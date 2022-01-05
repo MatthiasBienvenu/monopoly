@@ -16,21 +16,17 @@ class Player:
             rollval = dice1 + dice2
             self.pos += rollval
             if self.pos > 40:
-                self.pos += -40
+                self.pos -= 40
             self.location = Lcases[self.pos]
             self.location.action(self)
         else:
             self.location.action(self)
 
 
-class Case:
-    def __init__(self, name, pos):  # name = str ; pos = int 0<=pos<=40
+class Property:
+    def __init__(self, name, pos, group, price, rentDict):  # name = str ; pos = int 0<=pos<=40 ; group = [Property...] ; price = [priceCase, priceHouse, priceHostel] ; rentDict = dict
         self.name = name
         self.pos = pos
-
-
-class Property(Case):
-    def __init__(self, group, price, rentDict):  # group = [Property...] ; price = [priceCase, priceHouse, priceHostel] ; rentDict = dict
         self.houses = 0
         self.group = group
         self.price = price
@@ -41,21 +37,30 @@ class Property(Case):
         if self.owner == None:
             while True:
                 try:
-                    ans = str(input(f"Do you want to buy {self.name} for {self.price[0]}$ ? ('Y'=yes, 'N'=no)\n"))
-                except(ValueError): 'sfojkseopfsjop^f'
+                    ans = str(input(f"Do you want to buy {self.name} for {self.price[0]}$ ? ('y'=yes, 'n'=no)\n"))
+                    assert ans == 'y' or ans == 'n'
+                    if ans == 'y':
+                        player.money -= self.price[0]
+                        self.owner = player
+                        player.hand.append(self)
+                    break
+                except(ValueError, AssertionError):
+                    print("You have to type 'y' or 'n'")
 
 
-
-class Special(Case):
-    func = None
-    def __init__(self, action):  # action = function
+class Special:
+    def __init__(self, name, pos, action):  # name = str ; pos = int 0<=pos<=40 ; action = function
+        self.name = name
+        self.pos = pos
         self.action = action
 
 
-Lcases = []
+a = Property('name', 0, [], [400], {})
+
+Lcases = [a]
+
+p = Player('player')
 
 def test(player):
     print('bbbb')
 
-a = Special(test)
-print('ertergergedrgerg')
