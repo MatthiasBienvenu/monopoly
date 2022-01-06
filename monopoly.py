@@ -1,9 +1,10 @@
 from random import randint
 
+
 class Player:
     def __init__(self, name):
         self.dobble = 0
-        self.money = 1500
+        self.balance = 1500
         self.hand = []
         self.pos = 0
         self.location = Lcases[0]
@@ -34,18 +35,40 @@ class Property:
         self.owner = None
 
     def action(self, player):
-        if self.owner == None:
-            while True:
-                try:
-                    ans = str(input(f"Do you want to buy {self.name} for {self.price[0]}$ ? ('y'=yes, 'n'=no)\n"))
-                    assert ans == 'y' or ans == 'n'
-                    if ans == 'y':
-                        player.money -= self.price[0]
-                        self.owner = player
-                        player.hand.append(self)
-                    break
-                except(ValueError, AssertionError):
-                    print("You have to type 'y' or 'n'")
+        if self.owner is None:
+            # !!! choice
+            if player.balance >= self.price[0]:
+                while True:
+                    try:
+                        ans = str(input(f"What do you want to do with {self.name}? ('b'=buy, 'a'=auction, 'n'=nothing)"))
+                        assert ans in ['a', 'n', 's']
+                        if ans == 'b':
+                            player.balance -= self.price[0]
+                            self.owner = player
+                            player.hand.append(self)
+                        elif ans == 'a':
+                            pass
+                            # !!! auction
+                        break
+                    except AssertionError:
+                        print('wrong input')
+            else:
+                while True:
+                    try:
+                        ans = str(input(f"What do you want to do with {self.name}? ('a'=auction, 'n'=nothing)"))
+                        assert ans in ['a', 'n']
+                        if ans == 'a':
+                            pass
+                            # !!! auction
+                        break
+                    except AssertionError:
+                        print('wrong input')
+        else:
+            # !!! faillite
+            price = self.rentDict[self.houses]
+            player.balance -= price
+            self.owner.balance += price
+
 
 
 class Special:
@@ -55,12 +78,10 @@ class Special:
         self.action = action
 
 
-a = Property('name', 0, [], [400], {})
+a = Property('name', 0, [], [4000], {})
 
 Lcases = [a]
 
 p = Player('player')
 
-def test(player):
-    print('bbbb')
-
+a.action(p)
