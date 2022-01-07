@@ -24,10 +24,17 @@ class Player:
             self.location.action(self)
 
 
-class Property:
-    def __init__(self, name, pos, group, price, rentDict):  # name = str ; pos = int 0<=pos<=40 ; group = [Property...] ; price = [priceCase, priceHouse, priceHostel] ; rentDict = dict
+class Box:
+    def __init__(self, name, pos):
         self.name = name
         self.pos = pos
+
+
+class Property(Box):
+    def __init__(self, name, pos, group, price, rentDict):
+        # name = str ; pos = int 0<=pos<=40 ; group = [Property...] ; price = [priceCase, priceHouse, priceHostel] ;
+        # rentDict = dict
+        super().__init__(name, pos)
         self.houses = 0
         self.group = group
         self.price = price
@@ -40,7 +47,8 @@ class Property:
             if player.balance >= self.price[0]:
                 while True:
                     try:
-                        ans = str(input(f"What do you want to do with {self.name}? ('b'=buy, 'a'=auction, 'n'=nothing)"))
+                        ans = str(
+                            input(f"What do you want to do with {self.name}? ('b'=buy, 'a'=auction, 'n'=nothing)"))
                         assert ans in ['a', 'n', 's']
                         if ans == 'b':
                             player.balance -= self.price[0]
@@ -70,11 +78,9 @@ class Property:
             self.owner.balance += price
 
 
-
-class Special:
+class Special(Box):
     def __init__(self, name, pos, action):  # name = str ; pos = int 0<=pos<=40 ; action = function
-        self.name = name
-        self.pos = pos
+        super().__init__(name, pos)
         self.action = action
 
 
