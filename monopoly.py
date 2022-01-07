@@ -17,11 +17,24 @@ class Player:
             rollval = dice1 + dice2
             self.pos += rollval
             if self.pos > 40:
+                self.balance += 200
                 self.pos -= 40
             self.location = Lcases[self.pos]
             self.location.action(self)
         else:
             self.location.action(self)
+        if dice1 == dice2:
+            self.dobble+=1
+            if self.dobble == 3:
+                self.dobble = 0
+                self.pos = 10
+                #self.location = Lcases[10]
+                self.jailcount = 1
+                return
+                # !!! jail
+            self.roll()
+        else:
+            self.dobble = 0
 
 
 class Box:
@@ -82,6 +95,23 @@ class Special(Box):
     def __init__(self, name, pos, action):  # name = str ; pos = int 0<=pos<=40 ; action = function
         super().__init__(name, pos)
         self.action = action
+
+
+# ----- functions for special boxes -----
+
+def go(player):
+    player.balance += 200
+
+def chance(player):
+    Lchance[randint(1, len(Lchance))](player)
+
+# ----- functions for chance cards -----
+...
+Lchance = []
+
+# ----- functions for community chest cards -----
+...
+Lcomchest = []
 
 
 a = Property('name', 0, [], [4000], {})
