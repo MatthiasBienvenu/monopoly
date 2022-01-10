@@ -1,3 +1,4 @@
+# MONOPOLY VERSION USA
 from random import randint
 
 
@@ -60,14 +61,13 @@ class Property(Box):
             if player.balance >= self.price[0]:
                 while True:
                     try:
-                        ans = str(
-                            input(f"What do you want to do with {self.name}? ('b'=buy, 'a'=auction, 'n'=nothing)"))
-                        assert ans in ['a', 'n', 's']
-                        if ans == 'b':
+                        ans = str(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction, 2=buy)"))
+                        assert ans in range(3)
+                        if ans == 1:
                             player.balance -= self.price[0]
                             self.owner = player
                             player.hand.append(self)
-                        elif ans == 'a':
+                        elif ans == 2:
                             pass
                             # !!! auction
                         break
@@ -76,9 +76,9 @@ class Property(Box):
             else:
                 while True:
                     try:
-                        ans = str(input(f"What do you want to do with {self.name}? ('a'=auction, 'n'=nothing)"))
-                        assert ans in ['a', 'n']
-                        if ans == 'a':
+                        ans = str(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction)"))
+                        assert ans in range(2)
+                        if ans == 1:
                             pass
                             # !!! auction
                         break
@@ -113,8 +113,12 @@ Lchance = []
 ...
 Lcomchest = []
 
+# ----- List of the boxes -----
 
-a = Property('name', 0, [], [4000], {})
+#prop = Property('name', 0, [], [4000], {})
+
+GO = Special('GO', 0, go)
+MEDITERRANEAN_AVENUE = Property('MEDIERRANEAN_AVENUE', 1, brown, [], {})
 
 Lcases = [a]
 
