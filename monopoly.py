@@ -4,6 +4,7 @@ from random import randint
 
 class Player:
     def __init__(self, name):
+        self.name = name
         self.dobble = 0
         self.balance = 1500
         self.hand = []
