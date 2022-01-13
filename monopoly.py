@@ -190,10 +190,10 @@ def jail(player: Player) -> None:
         else:
             player.jailcount += 1
             
-def buy_houses(card, house_number):
+def buy_houses_hostel(property, house_number):
     #!!! faillite
-    card.owner -= house_number * card.price[1]
-    card.
+    property.owner -= house_number * property.price[1]
+    property.house += house_number
     
 
 
