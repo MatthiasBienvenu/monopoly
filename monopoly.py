@@ -47,7 +47,7 @@ class Box:
 
 
 class Property(Box):
-    def __init__(self, name: str, pos: int, group: list, price: list, rent: dict):
+    def __init__(self, name: str, pos: int, group: list, price: list, rent: dict, update_bonus: callable):
         # pos = int 0<=pos<=40 ; price = [priceCase, priceHouse]
         super().__init__(name, pos)
         self.houses = 0
@@ -56,6 +56,8 @@ class Property(Box):
         self.rent = rent
         self.owner = None
         self.group.append(self)
+        self.bonus = 1
+        self.update_bonus = update_bonus
 
     def action(self, player: Player) -> None:
         if self.owner is None:
@@ -63,13 +65,14 @@ class Property(Box):
             if player.balance >= self.price[0]:
                 while True:
                     try:
-                        ans = str(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction, 2=buy)"))
+                        ans = int(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction, 2=buy)"))
                         assert ans in range(3)
-                        if ans == 1:
+                        if ans == 2:
                             player.balance -= self.price[0]
                             self.owner = player
                             player.hand.append(self)
-                        elif ans == 2:
+                            self.update_bonus(self, player)
+                        elif ans == 1:
                             pass
                             # !!! auction
                         break
@@ -78,7 +81,7 @@ class Property(Box):
             else:
                 while True:
                     try:
-                        ans = str(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction)"))
+                        ans = int(input(f"What do you want to do with {self.name}? (0=nothing, 1=auction)"))
                         assert ans in range(2)
                         if ans == 1:
                             pass
@@ -88,9 +91,37 @@ class Property(Box):
                         print('wrong input')
         else:
             # !!! faillite
-            price = self.rent[self.houses]
+            if self.houses == 0:
+                price = self.rent[0] * self.bonus
+            else:
+                price = self.rent[self.houses]
             player.balance -= price
             self.owner.balance += price
+
+
+def property_bonus(property: Property, player: Player):
+    for neighbour in property.group:
+        if neighbour.owner != player:
+
+            for prop in property.group:
+                prop.bonus = 1
+
+    for prop in property.group:
+        prop.bonus = 2
+
+
+Lrailroads = []
+
+
+def railroad_bonus(property: Property, player: Player):
+    Lowned = []
+    n = 0.5
+    for railroad in Lrailroads:
+        if railroad.owner == player:
+            n *= 2
+            Lowned.append(railroad)
+    for railroad in Lrailroads:
+        railroad.bonus = n
 
 
 class Special(Box):
@@ -170,8 +201,6 @@ Lcomchest = []
 
 # ----- List of the boxes -----
 
-
-
 # prop = Property('name', 0, [], [4000], {})
 
 
@@ -185,45 +214,51 @@ green = []
 darkblue = []
 
 GO = Special('GO', 0, go)
-MEDITERRANEAN_AVENUE = Property('MEDITERRANEAN_AVENUE', 1, brown, [60, 50], {0: 2, 1: 10, 2: 30, 3: 90, 4: 160, 5: 250})
+MEDITERRANEAN_AVENUE = Property('MEDITERRANEAN_AVENUE', 1, brown, [60, 50], {0: 2, 1: 10, 2: 30, 3: 90, 4: 160, 5: 250}, property_bonus)
 COMMUNITY_CHEST1 = Special('COMMUNITY_CHEST', 2, community_chest)
-BALTIC_AVENUE = Property('BALTIC_AVENUE', 3, brown, [60, 50], {0: 4, 1: 20, 2: 60, 3: 180, 4: 320, 5: 450})
+BALTIC_AVENUE = Property('BALTIC_AVENUE', 3, brown, [60, 50], {0: 4, 1: 20, 2: 60, 3: 180, 4: 320, 5: 450}, property_bonus)
 INCOME_TAX = Special('INCOME_TAX', 4, tax200)
-# gare 1
-ORIENTAL_AVENUE = Property('ORIENTAL_AVENUE', 6, skyblue, [100, 50], {0: 6, 1: 30, 2: 90, 3: 270, 4: 400, 5: 550})
+READING_RAILROAD = Property('READING_RAILROAD', 5, Lrailroads, [200, None], {0: 25}, railroad_bonus)
+ORIENTAL_AVENUE = Property('ORIENTAL_AVENUE', 6, skyblue, [100, 50], {0: 6, 1: 30, 2: 90, 3: 270, 4: 400, 5: 550}, property_bonus)
 CHANCE1 = Special('CHANCE', 7, chance)
-VERMONT_AVENUE = Property('VERMONT_AVENUE', 8, skyblue, [100, 50], {0: 6, 1: 30, 2: 90, 3: 270, 4: 400, 5: 550})
-CONNECTICUT_AVENUE = Property('CONNECTICUT_AVENUE', 9, skyblue, [120, 50], {0: 8, 1: 40, 2: 100, 3: 300, 4: 450, 5: 600})
+VERMONT_AVENUE = Property('VERMONT_AVENUE', 8, skyblue, [100, 50], {0: 6, 1: 30, 2: 90, 3: 270, 4: 400, 5: 550}, property_bonus)
+CONNECTICUT_AVENUE = Property('CONNECTICUT_AVENUE', 9, skyblue, [120, 50], {0: 8, 1: 40, 2: 100, 3: 300, 4: 450, 5: 600}, property_bonus)
 JAIL = Special('JAIL', 10, jail)
-ST_CHARLES_PLACE = Property('ST_CHARLES_PLACE', 11, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750})
+ST_CHARLES_PLACE = Property('ST_CHARLES_PLACE', 11, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
+
 # electric company
-STATES_AVENUE = Property('STATES_AVENUE', 13, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750})
-VIRGINIA_AVENUE = Property('VIRGINIA_AVENUE', 14, pink, [160, 100], {0: 12, 1: 60, 2: 180, 3: 500, 4: 700, 5: 900})
-# gare 2
-ST_JAMES_PLACE = Property('ST_JAMES_PLACE', 16, orange, [180, 100], {0: 14, 1: 70, 2: 200, 3: 550, 4: 750, 5: 950})
+Lcases.append("electric company")
+
+STATES_AVENUE = Property('STATES_AVENUE', 13, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
+VIRGINIA_AVENUE = Property('VIRGINIA_AVENUE', 14, pink, [160, 100], {0: 12, 1: 60, 2: 180, 3: 500, 4: 700, 5: 900}, property_bonus)
+PENNSYLVANIA_RAILROAD = Property('PENNSYLVANIA_RAILROAD', 15, Lrailroads, [200, None], {0: 25}, railroad_bonus)
+ST_JAMES_PLACE = Property('ST_JAMES_PLACE', 16, orange, [180, 100], {0: 14, 1: 70, 2: 200, 3: 550, 4: 750, 5: 950}, property_bonus)
 COMMUNITY_CHEST2 = Special('COMMUNITY_CHEST', 17, community_chest)
-TENNESSEE_AVENUE = Property('TENNESSEE_AVENUE', 18, orange, [180, 100],{0: 14, 1: 70, 2: 200, 3: 550, 4: 750, 5: 950})
-NEW_YORK_AVENUE = Property('NEW_YORK_AVENUE', 19, orange, [200, 100], {0: 16, 1: 80, 2: 220, 3: 600, 4: 800, 5: 1000})
+TENNESSEE_AVENUE = Property('TENNESSEE_AVENUE', 18, orange, [180, 100],{0: 14, 1: 70, 2: 200, 3: 550, 4: 750, 5: 950}, property_bonus)
+NEW_YORK_AVENUE = Property('NEW_YORK_AVENUE', 19, orange, [200, 100], {0: 16, 1: 80, 2: 220, 3: 600, 4: 800, 5: 1000}, property_bonus)
 FREE_PARKING = Special('FREE_PARKING', 20, free_parking)
-KENTUCKY_AVENUE = Property('KENTUCKY_AVENUE', 21, red, [220, 150], {0: 18, 1: 90, 2: 250, 3: 700, 4: 875, 5: 1050})
+KENTUCKY_AVENUE = Property('KENTUCKY_AVENUE', 21, red, [220, 150], {0: 18, 1: 90, 2: 250, 3: 700, 4: 875, 5: 1050}, property_bonus)
 CHANCE2 = Special('CHANCE', 22, chance)
-INDIANA_AVENUE = Property('INDIANA_AVENUE', 23, red, [220, 150], {0: 18, 1: 90, 2: 250, 3: 700, 4: 875, 5: 1050})
-ILLINOIS_AVENUE = Property('ILLINOIS_AVENUE', 24, red, [240, 150], {0: 20, 1: 100, 2: 300, 3: 750, 4: 925, 5: 1100})
-# gare 3
-ATLANTIC_AVENUE = Property('ATLANTIC_AVENUE', 26, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150})
-VENTNOR_AVENUE = Property('VENTNOR_AVENUE', 27, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150})
+INDIANA_AVENUE = Property('INDIANA_AVENUE', 23, red, [220, 150], {0: 18, 1: 90, 2: 250, 3: 700, 4: 875, 5: 1050}, property_bonus)
+ILLINOIS_AVENUE = Property('ILLINOIS_AVENUE', 24, red, [240, 150], {0: 20, 1: 100, 2: 300, 3: 750, 4: 925, 5: 1100}, property_bonus)
+B_O_RAILROAD = Property('B. & O. RAILROAD', 25, Lrailroads, [200, None], {0: 25}, railroad_bonus)
+ATLANTIC_AVENUE = Property('ATLANTIC_AVENUE', 26, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
+VENTNOR_AVENUE = Property('VENTNOR_AVENUE', 27, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
+
 # water company
-MARVIN_GARDENS = Property('MARVIN_GARDENS', 29, yellow, [280, 150], {0: 24, 1: 120, 2: 360, 3: 850, 4: 1025, 5: 1200})
+Lcases.append("water company")
+
+MARVIN_GARDENS = Property('MARVIN_GARDENS', 29, yellow, [280, 150], {0: 24, 1: 120, 2: 360, 3: 850, 4: 1025, 5: 1200}, property_bonus)
 GO_TO_JAIL = Special('GO_TO_JAIL', 30, go_to_jail)
-PACIFIC_AVENUE = Property('PACIFIC_AVENUE', 31, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275})
-NORTH_CAROLINA_AVENUE = Property('NORTH_CAROLINA_AVENUE', 32, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275})
+PACIFIC_AVENUE = Property('PACIFIC_AVENUE', 31, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275}, property_bonus)
+NORTH_CAROLINA_AVENUE = Property('NORTH_CAROLINA_AVENUE', 32, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275}, property_bonus)
 COMMUNITY_CHEST3 = Special('COMMUNITY_CHEST', 33, community_chest)
-PENNSYLVANIA_AVENUE = Property('PENNSYLVANIA_AVENUE', 34, green, [320, 200], {0: 28, 1: 150, 2: 450, 3: 1000, 4: 1200, 5: 1400})
-# gare 4
+PENNSYLVANIA_AVENUE = Property('PENNSYLVANIA_AVENUE', 34, green, [320, 200], {0: 28, 1: 150, 2: 450, 3: 1000, 4: 1200, 5: 1400}, property_bonus)
+SHORT_LINE = Property('SHORT_LINE', 35, Lrailroads, [200, None], {0: 25}, railroad_bonus)
 CHANCE3 = Special('CHANCE', 36, chance)
-PARK_PLACE = Property('PARK_PLACE', 37, darkblue, [350, 200], {0: 35, 1: 175, 2: 500, 3: 1100, 4: 1300, 5: 1500})
+PARK_PLACE = Property('PARK_PLACE', 37, darkblue, [350, 200], {0: 35, 1: 175, 2: 500, 3: 1100, 4: 1300, 5: 1500}, property_bonus)
 LUXURY_TAX = Special('LUXURY_TAX', 38, tax100)
-BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 600, 3: 1400, 4: 1700, 5: 2000})
+BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 600, 3: 1400, 4: 1700, 5: 2000}, property_bonus)
 
 
 
