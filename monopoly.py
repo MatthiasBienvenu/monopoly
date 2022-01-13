@@ -189,6 +189,12 @@ def jail(player: Player) -> None:
             # !!! faillite
         else:
             player.jailcount += 1
+            
+def buy_houses(card, house_number):
+    #!!! faillite
+    card.owner -= house_number * card.price[1]
+    card.
+    
 
 
 # ----- functions for chance cards -----
