@@ -1,21 +1,23 @@
 # MONOPOLY VERSION USA
 from random import randint
 
+# ----- classes -----
 
 class Player:
     def __init__(self, name: str):
         self.name = name
-        self.dobble = 0
+        self.doubleCount = 0
         self.balance = 1500
         self.hand = []
         self.pos = 0
         self.location = Lcases[0]
-        self.jailcount = 0
+        self.jailCount = 0
+        self.dicesVal = 0
 
     def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)):
-        if self.jailcount == 0:
-            rollval = dice1 + dice2
-            self.pos += rollval
+        if self.jailCount == 0:
+            self.dicesVal = dice1 + dice2
+            self.pos += self.dicesVal
             if self.pos >= 40:
                 self.balance += 200
                 self.pos -= 40
@@ -24,20 +26,18 @@ class Player:
         else:
             self.location.action(self)
         if dice1 == dice2:
-            self.dobble += 1
-            if self.dobble == 3:
-                self.dobble = 0
+            self.doubleCount += 1
+            if self.doubleCount == 3:
+                self.doubleCount = 0
                 go_to_jail(self)
                 return
                 # !!! jail
             self.roll()
         else:
-            self.dobble = 0
+            self.doubleCount = 0
 
 
 Lcases = []
-
-
 class Box:
     def __init__(self, name: str, pos: int):
         global Lcases
@@ -92,28 +92,41 @@ class Property(Box):
         else:
             # !!! faillite
             if self.houses == 0:
-                price = self.rent[0] * self.bonus
+                if self.pos in [12, 28]:
+                    # 12 and 28 correspond to the positions of the two companies
+                    self.bonus * self.pos
+                else:
+                    price = self.rent[0] * self.bonus
             else:
                 price = self.rent[self.houses]
             player.balance -= price
             self.owner.balance += price
 
 
-def property_bonus(property: Property, player: Player):
+class Special(Box):
+    def __init__(self, name: str, pos: int, action: callable):  # pos = int 0<=pos<=40
+        super().__init__(name, pos)
+        self.action = action
+
+
+# ----- functions for updating bonuses -----
+
+def property_bonus(property: Property, player: Player) -> None:
+    # if one of the owners of the properties of the group is different it changes bonuses to 1 else changes to 2
     for neighbour in property.group:
         if neighbour.owner != player:
-
+            # changes all bonuses of the group to 1
             for prop in property.group:
                 prop.bonus = 1
-
+            return
+    # changes all bonuses to 2
     for prop in property.group:
         prop.bonus = 2
 
 
 Lrailroads = []
-
-
-def railroad_bonus(property: Property, player: Player):
+def railroad_bonus(property: Property, player: Player) -> None:
+    # multiplies the bonus by 2 for every railroad that a player holds
     Lowned = []
     n = 0.5
     for railroad in Lrailroads:
@@ -124,10 +137,17 @@ def railroad_bonus(property: Property, player: Player):
         railroad.bonus = n
 
 
-class Special(Box):
-    def __init__(self, name: str, pos: int, action: callable):  # pos = int 0<=pos<=40
-        super().__init__(name, pos)
-        self.action = action
+def company_bonus(property: Property, player: Player) -> None:
+    # if one of the owners of the properties of the group is different it changes bonuses to 4 else changes to 10
+    for neighbour in property.group:
+        if neighbour.owner != player:
+            # changes all bonuses of the group to 4
+            for prop in property.group:
+                prop.bonus = 4
+            return
+    # changes all bonuses to 10
+    for prop in property.group:
+        prop.bonus = 10
 
 
 # ----- functions for special boxes -----
@@ -153,7 +173,7 @@ def community_chest(player: Player) -> None:
 def go_to_jail(player: Player) -> None:
     player.pos = 10
     player.location = Lcases[10]
-    player.jailcount = 1
+    player.jailCount = 1
 
 
 fees = 0
@@ -178,20 +198,21 @@ def free_parking(player: Player) -> None:
 
 
 def jail(player: Player) -> None:
-    if player.jailcount != 0:
+    if player.jailCount != 0:
         dice1 = randint(1, 6)
         dice2 = randint(1, 6)
         if dice1 == dice2:
             player.roll(dice1, dice2)
-        if player.jailcount == 3:
+        if player.jailCount == 3:
             player.balance -= 50
             player.roll()
             # !!! faillite
         else:
-            player.jailcount += 1
-            
+            player.jailCount += 1
+
+
 def buy_houses_hostel(property, house_number):
-    #!!! faillite
+    # !!! faillite
     property.owner -= house_number * property.price[1]
     property.house += house_number
     
@@ -218,6 +239,7 @@ red = []
 yellow = []
 green = []
 darkblue = []
+companies = []
 
 GO = Special('GO', 0, go)
 MEDITERRANEAN_AVENUE = Property('MEDITERRANEAN_AVENUE', 1, brown, [60, 50], {0: 2, 1: 10, 2: 30, 3: 90, 4: 160, 5: 250}, property_bonus)
@@ -232,7 +254,7 @@ CONNECTICUT_AVENUE = Property('CONNECTICUT_AVENUE', 9, skyblue, [120, 50], {0: 8
 JAIL = Special('JAIL', 10, jail)
 ST_CHARLES_PLACE = Property('ST_CHARLES_PLACE', 11, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
 
-# electric company
+ELECTRIC_COMPANY = Property('ELECTRIC_COMPANY', 12, companies, [], {0: 1}, property_bonus)
 Lcases.append("electric company")
 
 STATES_AVENUE = Property('STATES_AVENUE', 13, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
