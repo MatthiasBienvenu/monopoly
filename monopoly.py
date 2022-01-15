@@ -1,6 +1,7 @@
 # MONOPOLY VERSION USA
 from random import randint
 
+
 # ----- classes -----
 
 class Player:
@@ -18,6 +19,7 @@ class Player:
         if self.jailCount == 0:
             self.dicesVal = dice1 + dice2
             self.pos += self.dicesVal
+            # replaces go action
             if self.pos >= 40:
                 self.balance += 200
                 self.pos -= 40
@@ -153,6 +155,7 @@ def company_bonus(property: Property, player: Player) -> None:
 # ----- functions for special boxes -----
 
 def go(player: Player) -> None:
+    # already taken into account in player.action()
     pass
 
 
@@ -177,8 +180,6 @@ def go_to_jail(player: Player) -> None:
 
 
 fees = 0
-
-
 def tax100(player: Player) -> None:
     global fees
     player.balance -= 100  # !!! faillite
