@@ -253,10 +253,7 @@ VERMONT_AVENUE = Property('VERMONT_AVENUE', 8, skyblue, [100, 50], {0: 6, 1: 30,
 CONNECTICUT_AVENUE = Property('CONNECTICUT_AVENUE', 9, skyblue, [120, 50], {0: 8, 1: 40, 2: 100, 3: 300, 4: 450, 5: 600}, property_bonus)
 JAIL = Special('JAIL', 10, jail)
 ST_CHARLES_PLACE = Property('ST_CHARLES_PLACE', 11, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
-
-ELECTRIC_COMPANY = Property('ELECTRIC_COMPANY', 12, companies, [], {0: 1}, property_bonus)
-Lcases.append("electric company")
-
+ELECTRIC_COMPANY = Property('ELECTRIC_COMPANY', 12, companies, [], {}, company_bonus)
 STATES_AVENUE = Property('STATES_AVENUE', 13, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
 VIRGINIA_AVENUE = Property('VIRGINIA_AVENUE', 14, pink, [160, 100], {0: 12, 1: 60, 2: 180, 3: 500, 4: 700, 5: 900}, property_bonus)
 PENNSYLVANIA_RAILROAD = Property('PENNSYLVANIA_RAILROAD', 15, Lrailroads, [200, None], {0: 25}, railroad_bonus)
@@ -272,10 +269,7 @@ ILLINOIS_AVENUE = Property('ILLINOIS_AVENUE', 24, red, [240, 150], {0: 20, 1: 10
 B_O_RAILROAD = Property('B. & O. RAILROAD', 25, Lrailroads, [200, None], {0: 25}, railroad_bonus)
 ATLANTIC_AVENUE = Property('ATLANTIC_AVENUE', 26, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
 VENTNOR_AVENUE = Property('VENTNOR_AVENUE', 27, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
-
-# water company
-Lcases.append("water company")
-
+WATER_COMPANY = Property('WATER_COMPANY', 28, companies, [], {}, company_bonus)
 MARVIN_GARDENS = Property('MARVIN_GARDENS', 29, yellow, [280, 150], {0: 24, 1: 120, 2: 360, 3: 850, 4: 1025, 5: 1200}, property_bonus)
 GO_TO_JAIL = Special('GO_TO_JAIL', 30, go_to_jail)
 PACIFIC_AVENUE = Property('PACIFIC_AVENUE', 31, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275}, property_bonus)
