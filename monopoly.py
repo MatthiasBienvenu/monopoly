@@ -25,8 +25,34 @@ class Player:
                 self.pos -= 40
             self.location = Lcases[self.pos]
             self.location.action(self)
+
+        Lownedpos = [prop.pos for prop in self.hand]
+        # ------------------------------------ ça marche pas
+        while True:
+            try:
+                pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
+                assert pos == -1 or pos in Lownedpos
+                property = Lcases[pos]
+                assert property.houses < property.max_houses
+                if pos == -1:
+                    break
+                else:
+                    for neighbour in property.group:
+                        if neighbour.owner != self:
+                            raise ValueError
+                        elif neighbour.houses < property.houses:
+                            raise ValueError
+                    # !!! faillite
+                    self.balance -= property.price[1]
+                    property.houses += 1
+                    property.bonus = 1
+            except (AssertionError, ValueError):
+                print('wrong input')
+        # ------------------------------------ ça marche pas
         else:
             self.location.action(self)
+
+
         if dice1 == dice2:
             self.doubleCount += 1
             if self.doubleCount == 3:
@@ -60,6 +86,7 @@ class Property(Box):
         self.group.append(self)
         self.bonus = 1
         self.update_bonus = update_bonus
+        self.max_houses = len(self.rent) - 1
 
     def action(self, player: Player) -> None:
         if self.owner is None:
@@ -96,7 +123,7 @@ class Property(Box):
             if self.houses == 0:
                 if self.pos in [12, 28]:
                     # 12 and 28 correspond to the positions of the two companies
-                    self.bonus * player.dicesVal
+                    price = self.bonus * player.dicesVal
                 else:
                     price = self.rent[0] * self.bonus
             else:
@@ -136,7 +163,7 @@ def railroad_bonus(property: Property, player: Player) -> None:
             n *= 2
             Lowned.append(railroad)
     for railroad in Lrailroads:
-        railroad.bonus = n
+        railroad.bonus = int(n)
 
 
 def company_bonus(property: Property, player: Player) -> None:
@@ -203,9 +230,12 @@ def jail(player: Player) -> None:
         dice1 = randint(1, 6)
         dice2 = randint(1, 6)
         if dice1 == dice2:
+            print('mec t sorti de prison poissonFdp')
+            player.jailCount = 0
             player.roll(dice1, dice2)
         if player.jailCount == 3:
             player.balance -= 50
+            player.jailCount = 0
             player.roll()
             # !!! faillite
         else:
@@ -216,7 +246,7 @@ def buy_houses_hostel(property, house_number):
     # !!! faillite
     property.owner -= house_number * property.price[1]
     property.house += house_number
-    
+
 
 
 # ----- functions for chance cards -----
@@ -254,7 +284,7 @@ VERMONT_AVENUE = Property('VERMONT_AVENUE', 8, skyblue, [100, 50], {0: 6, 1: 30,
 CONNECTICUT_AVENUE = Property('CONNECTICUT_AVENUE', 9, skyblue, [120, 50], {0: 8, 1: 40, 2: 100, 3: 300, 4: 450, 5: 600}, property_bonus)
 JAIL = Special('JAIL', 10, jail)
 ST_CHARLES_PLACE = Property('ST_CHARLES_PLACE', 11, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
-ELECTRIC_COMPANY = Property('ELECTRIC_COMPANY', 12, companies, [], {}, company_bonus)
+ELECTRIC_COMPANY = Property('ELECTRIC_COMPANY', 12, companies, [150, None], {}, company_bonus)
 STATES_AVENUE = Property('STATES_AVENUE', 13, pink, [140, 100], {0: 10, 1: 50, 2: 150, 3: 450, 4: 625, 5: 750}, property_bonus)
 VIRGINIA_AVENUE = Property('VIRGINIA_AVENUE', 14, pink, [160, 100], {0: 12, 1: 60, 2: 180, 3: 500, 4: 700, 5: 900}, property_bonus)
 PENNSYLVANIA_RAILROAD = Property('PENNSYLVANIA_RAILROAD', 15, Lrailroads, [200, None], {0: 25}, railroad_bonus)
@@ -283,6 +313,5 @@ PARK_PLACE = Property('PARK_PLACE', 37, darkblue, [350, 200], {0: 35, 1: 175, 2:
 LUXURY_TAX = Special('LUXURY_TAX', 38, tax100)
 BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 600, 3: 1400, 4: 1700, 5: 2000}, property_bonus)
 
-
-
-p = Player('player')
+p = Player('p')
+p2 = Player('p2')
