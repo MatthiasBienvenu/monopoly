@@ -96,7 +96,7 @@ class Property(Box):
             if self.houses == 0:
                 if self.pos in [12, 28]:
                     # 12 and 28 correspond to the positions of the two companies
-                    self.bonus * self.pos
+                    self.bonus * player.dicesVal
                 else:
                     price = self.rent[0] * self.bonus
             else:
@@ -270,7 +270,7 @@ ILLINOIS_AVENUE = Property('ILLINOIS_AVENUE', 24, red, [240, 150], {0: 20, 1: 10
 B_O_RAILROAD = Property('B. & O. RAILROAD', 25, Lrailroads, [200, None], {0: 25}, railroad_bonus)
 ATLANTIC_AVENUE = Property('ATLANTIC_AVENUE', 26, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
 VENTNOR_AVENUE = Property('VENTNOR_AVENUE', 27, yellow, [260, 150], {0: 22, 1: 110, 2: 330, 3: 800, 4: 975, 5: 1150}, property_bonus)
-WATER_COMPANY = Property('WATER_COMPANY', 28, companies, [], {}, company_bonus)
+WATER_COMPANY = Property('WATER_COMPANY', 28, companies, [150, None], {}, company_bonus)
 MARVIN_GARDENS = Property('MARVIN_GARDENS', 29, yellow, [280, 150], {0: 24, 1: 120, 2: 360, 3: 850, 4: 1025, 5: 1200}, property_bonus)
 GO_TO_JAIL = Special('GO_TO_JAIL', 30, go_to_jail)
 PACIFIC_AVENUE = Property('PACIFIC_AVENUE', 31, green, [300, 200], {0: 26, 1: 130, 2: 390, 3: 900, 4: 1100, 5: 1275}, property_bonus)
