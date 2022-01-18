@@ -24,16 +24,20 @@ class Player:
                 self.balance += 200
                 self.pos -= 40
             self.location = Lcases[self.pos]
+            print(self.pos, self.location.name)
             self.location.action(self)
-
-        Lownedpos = [prop.pos for prop in self.hand]
+        else:
+            print(f"jailCount : {self.jailCount}")
+            self.location.action(self)
+            print('qsdfhdthrtherthtyuiopopjklm')
         # ------------------------------------ ça marche pas
+        Lpos = [prop.pos for prop in self.hand]
         while True:
             try:
                 pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
-                assert pos == -1 or pos in Lownedpos
+                assert pos == -1 or pos in Lpos
                 property = Lcases[pos]
-                assert property.houses < property.max_houses
+                assert property.houses < property.maxHouses
                 if pos == -1:
                     break
                 else:
@@ -49,10 +53,6 @@ class Player:
             except (AssertionError, ValueError):
                 print('wrong input')
         # ------------------------------------ ça marche pas
-        else:
-            self.location.action(self)
-
-
         if dice1 == dice2:
             self.doubleCount += 1
             if self.doubleCount == 3:
@@ -86,7 +86,7 @@ class Property(Box):
         self.group.append(self)
         self.bonus = 1
         self.update_bonus = update_bonus
-        self.max_houses = len(self.rent) - 1
+        self.maxHouses = len(self.rent) - 1
 
     def action(self, player: Player) -> None:
         if self.owner is None:
@@ -105,7 +105,7 @@ class Property(Box):
                             pass
                             # !!! auction
                         break
-                    except AssertionError:
+                    except (AssertionError, ValueError):
                         print('wrong input')
             else:
                 while True:
@@ -116,7 +116,7 @@ class Property(Box):
                             pass
                             # !!! auction
                         break
-                    except AssertionError:
+                    except (AssertionError, ValueError):
                         print('wrong input')
         else:
             # !!! faillite
@@ -229,13 +229,15 @@ def jail(player: Player) -> None:
     if player.jailCount != 0:
         dice1 = randint(1, 6)
         dice2 = randint(1, 6)
+        print(f"dice1 : {dice1}, dice 2 : {dice2}")
         if dice1 == dice2:
             print('mec t sorti de prison poissonFdp')
             player.jailCount = 0
             player.roll(dice1, dice2)
-        if player.jailCount == 3:
+        elif player.jailCount == 3:
             player.balance -= 50
             player.jailCount = 0
+            print("t'as payé mec parce que tu forces")
             player.roll()
             # !!! faillite
         else:
@@ -315,3 +317,4 @@ BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 6
 
 p = Player('p')
 p2 = Player('p2')
+p.roll(30, 0)
