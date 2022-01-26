@@ -15,7 +15,7 @@ class Player:
         self.jailCount = 0
         self.dicesVal = 0
 
-    def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)):
+    def roll(self, dice1=randint(1, 6), dice2=randint(1, 6), houseAsk=True):
         if self.jailCount == 0:
             self.dicesVal = dice1 + dice2
             self.pos += self.dicesVal
@@ -29,30 +29,30 @@ class Player:
         else:
             print(f"jailCount : {self.jailCount}")
             self.location.action(self)
-            print('qsdfhdthrtherthtyuiopopjklm')
-        # ------------------------------------ ça marche pas
+
         Lpos = [prop.pos for prop in self.hand]
-        while True:
-            try:
-                pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
-                assert pos == -1 or pos in Lpos
-                property = Lcases[pos]
-                assert property.houses < property.maxHouses
-                if pos == -1:
-                    break
-                else:
-                    for neighbour in property.group:
-                        if neighbour.owner != self:
-                            raise ValueError
-                        elif neighbour.houses < property.houses:
-                            raise ValueError
-                    # !!! faillite
-                    self.balance -= property.price[1]
-                    property.houses += 1
-                    property.bonus = 1
-            except (AssertionError, ValueError):
-                print('wrong input')
-        # ------------------------------------ ça marche pas
+        if houseAsk:
+            while True:
+                try:
+                    pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
+                    assert pos == -1 or pos in Lpos
+                    property = Lcases[pos]
+                    assert property.houses < property.maxHouses
+                    if pos == -1:
+                        break
+                    else:
+                        for neighbour in property.group:
+                            if neighbour.owner != self:
+                                raise ValueError
+                            elif neighbour.houses < property.houses:
+                                raise ValueError
+                        # !!! faillite
+                        self.balance -= property.price[1]
+                        property.houses += 1
+                        property.bonus = 1
+                except (AssertionError, ValueError):
+                    print('wrong input')
+
         if dice1 == dice2:
             self.doubleCount += 1
             if self.doubleCount == 3:
@@ -238,17 +238,10 @@ def jail(player: Player) -> None:
             player.balance -= 50
             player.jailCount = 0
             print("t'as payé mec parce que tu forces")
-            player.roll()
+            player.roll(houseAsk=False)
             # !!! faillite
         else:
             player.jailCount += 1
-
-
-def buy_houses_hostel(property, house_number):
-    # !!! faillite
-    property.owner -= house_number * property.price[1]
-    property.house += house_number
-
 
 
 # ----- functions for chance cards -----
