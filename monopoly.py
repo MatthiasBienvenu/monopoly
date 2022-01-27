@@ -37,17 +37,17 @@ class Player:
                     pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
                     assert pos == -1 or pos in Lpos
                     property = Lcases[pos]
-                    assert property.houses < property.maxHouses
                     if pos == -1:
                         break
                     else:
+                        housePrice = property.price[1]
+                        assert property.houses < property.maxHouses and self.balance >= housePrice
                         for neighbour in property.group:
                             if neighbour.owner != self:
                                 raise ValueError
                             elif neighbour.houses < property.houses:
                                 raise ValueError
-                        # !!! faillite
-                        self.balance -= property.price[1]
+                        self.balance -= housePrice
                         property.houses += 1
                         property.bonus = 1
                 except (AssertionError, ValueError):
@@ -63,6 +63,23 @@ class Player:
             self.roll()
         else:
             self.doubleCount = 0
+
+    def bankruptcy(self, creditor) -> None:
+        while True:
+            try:
+                print(f"debt: {-self.balance}")
+                ans = int(input(f"Which property do you want to giver to {creditor.name}?(enter the position)"))
+                property = Lcases[ans]
+                self.hand.remove(property)
+                property.owner = creditor
+                creditor += property
+                self.balance += property.price[0]
+                if self.balance >= 0:
+                    break
+                elif len(self.hand) == 0:
+                    print("bah t'as perdu mec") # !!! défaite
+            except (IndexError, ValueError):
+                print('wrong input')
 
 
 Lcases = []
@@ -130,6 +147,8 @@ class Property(Box):
                 price = self.rent[self.houses]
             player.balance -= price
             self.owner.balance += price
+            if player.balance < 0:
+                player.bankruptcy(self.owner)
 
 
 class Special(Box):
@@ -255,7 +274,7 @@ def jail(player: Player) -> None:
             player.jailCount += 1
 
 
-# ---- chance cards + community chest cards -----
+# ----- chance cards + community chest cards -----
 
 def go_to(player: Player) -> None:
     # goTo.attribute is the position of the location
@@ -317,8 +336,6 @@ Lcomchest = [(go_to, 0), (money_transfer, 25), (money_transfer, 100), (money_tra
 
 # ----- List of the boxes -----
 
-# prop = Property('name', 0, [], [4000], {})
-
 
 brown = []
 skyblue = []
@@ -373,5 +390,5 @@ BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 6
 
 p = Player('p')
 p2 = Player('p2')
-p.roll(4, 3)
-
+p.roll(30, 7)
+p.roll(0, 2)
