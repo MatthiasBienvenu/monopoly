@@ -187,23 +187,34 @@ def go(player: Player) -> None:
 
 
 def chance(player: Player) -> None:
-    card = Lchance[0]
-    card(player)
-    del (Lchance[0])
+    i = randint(0, 15)
+    card = Lchance[i]
+    print(card[0].__name__, card[1])
+    f = card[0]
+    attribute = card[1]
+    f.attribute = attribute
+    f(player)
+    del Lchance[i]
     Lchance.append(card)
 
 
 def community_chest(player: Player) -> None:
-    card = Lcomchest[0]
-    card(player)
-    del (Lcomchest[0])
+    i = randint(0, 15)
+    card = Lcomchest[i]
+    print(card[0].__name__, card[1])
+    f = card[0]
+    attribute = card[1]
+    f.attribute = attribute
+    f(player)
+    del Lcomchest[i]
     Lcomchest.append(card)
 
 
 def go_to_jail(player: Player) -> None:
+    # go_to_jail is used for property.action but also for chance cards
     player.pos = 10
     player.location = Lcases[10]
-    player.jailCount = 1
+    player.jailCount += 1
 
 
 fees = 0
@@ -244,13 +255,65 @@ def jail(player: Player) -> None:
             player.jailCount += 1
 
 
-# ----- functions for chance cards -----
-...
-Lchance = []
+# ---- chance cards + community chest cards -----
 
-# ----- functions for community chest cards -----
-...
-Lcomchest = []
+def go_to(player: Player) -> None:
+    # goTo.attribute is the position of the location
+    pos = go_to.attribute
+    if player.pos >= pos:
+        player.balance += 200
+    player.pos = pos
+    player.location = Lcases[pos]
+    player.location.action(player)
+
+
+def money_transfer(player: Player) -> None:
+    # money.attribute is the amount of money added to player.balance
+    player.balance += money_transfer.attribute
+
+
+def go_to_nearest(player: Player) -> None:
+    # go_to_nearest.attribute is either 'r' for railroad or 'c' for company
+    typ = go_to_nearest.attribute
+
+    if typ == 'r':
+        # test opti à faire
+        pos = ((player.pos+5)//10)*10+5
+
+    elif typ == 'c':
+        if 12 <= player.pos < 28:
+            pos = 28
+        else:
+            pos = 12
+
+    player.pos = pos
+    player.location = Lcases[pos]
+    player.location.action(player)
+
+
+def repairs(player: Player):
+    # repairs.attribute is the price player has to pay for each house
+    n = 0
+    for prop in player.hand:
+        n += prop.houses
+    player.balance -= n * repairs.attribute
+    # !!! faillite
+
+
+def out_of_jail(player: Player) -> None:
+    # no attribute used
+    player.jailCount -= 1
+
+
+Lchance = [(go_to, 0), (go_to, 5), (go_to, 11), (go_to, 24), (go_to, 39), (money_transfer, 150), (money_transfer, -15),
+           (money_transfer, -100), (money_transfer, -35), (go_to_nearest, 'c'), (go_to_nearest, 'c'),
+           (go_to_nearest, 'r'), (go_to_nearest, 'r'), (repairs, 25), (out_of_jail, None), (go_to_jail, None)]
+
+
+Lcomchest = [(go_to, 0), (money_transfer, 25), (money_transfer, 100), (money_transfer, 10), (money_transfer, 50),
+             (money_transfer, 200), (money_transfer, -50), (money_transfer, 100), (money_transfer, 100),
+             (money_transfer, -50), (money_transfer, -100), (money_transfer, 20), (money_transfer, 40),
+             (repairs, 40), (out_of_jail, None), (go_to_jail, None)]
 
 # ----- List of the boxes -----
 
@@ -310,4 +373,5 @@ BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 6
 
 p = Player('p')
 p2 = Player('p2')
-p.roll(30, 0)
+p.roll(4, 3)
+
