@@ -30,7 +30,6 @@ class Player:
             print(f"jailCount : {self.jailCount}")
             self.location.action(self)
 
-        Lpos = [prop.pos for prop in self.hand]
         #if houseAsk:
         #    self.ask_house()
 
@@ -45,24 +44,50 @@ class Player:
         else:
             self.doubleCount = 0
 
-    def bankruptcy(self, creditor) -> None:
-        while True:
-            try:
-                print(f"debt: {-self.balance}")
-                ans = int(input(f"Which property do you want to giver to {creditor.name}?(enter the position)"))
-                property = Lcases[ans]
-                self.hand.remove(property)
-                property.owner = creditor
-                creditor += property
-                self.balance += property.price[0]
-                if self.balance >= 0:
-                    break
-                elif len(self.hand) == 0:
-                    print("bah t'as perdu mec") # !!! défaite
-            except (IndexError, ValueError):
-                print('wrong input')
+    def bankruptcy(self, creditor=None) -> None:
+        totalValue = self.balance + sum(int(prop.price[0] + prop.houses * prop.price[1] / 2) for prop in self.hand)
+        print(f"totalValue: {totalValue}")
+        if totalValue < 0:
+            if not (creditor is None):
+                creditor.balance += self.balance
+            print("bah t'as perdu mec")
+            # !!! défaite
+        else:
+            while True:
+                try:
+                    print(f"debt: {-self.balance}")
+
+                    if self.balance >= 0:
+                        break
+
+
+
+
+                    ans = int(input(f"Where do you want to sell ? (enter the position)"))
+                    property = Lcases[ans]
+                    assert isinstance(property, Property) and property.owner == self
+
+                    for prop in property.group:
+                        if prop.houses > property.houses:
+                            raise ValueError
+
+                    if property.houses == 0:
+                        property.owner = None
+                        self.hand.remove(property)
+                        self.balance += property.price[0]
+                        for prop in property.group:
+                            prop.update_bonus(prop, self)
+                    else:
+                        property.houses -= 1
+                        self.balance += int(property.price[1] / 2)
+                        print(int(property.price[1] / 2))
+
+                except (AssertionError, IndexError, ValueError):
+                    print('wrong input')
     
-    def ask_houses(self):
+    def ask_houses(self) -> None:
+        print('pouetpouetpouet')
+        Lpos = [prop.pos for prop in self.hand]
         while True:
             try:
                 pos = int(input(f"Houses ? (-1 = stop or pos of the property)"))
@@ -72,6 +97,7 @@ class Player:
                     break
                 else:
                     housePrice = property.price[1]
+                    print(housePrice)
                     assert property.houses < property.maxHouses and self.balance >= housePrice
                     for neighbour in property.group:
                         if neighbour.owner != self:
@@ -84,9 +110,9 @@ class Player:
             except (AssertionError, ValueError):
                 print('wrong input')
     
-    def play(self):
-        self.roll()
-        self.ask_house()
+    def play(self, dice1=randint(1,6), dice2=randint(1,6)) -> None:
+        self.roll(dice1, dice2)
+        self.ask_houses()
 
 Lcases = []
 class Box:
@@ -396,5 +422,9 @@ BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 6
 
 p = Player('p')
 p2 = Player('p2')
-p.roll(30, 7)
-p.roll(0, 2)
+p.play(30, 7)
+p.balance += 100000000000
+p.play(0, 2)
+p2.play(31, 0)
+p2.play(8, 0)
+
