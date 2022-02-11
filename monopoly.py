@@ -4,6 +4,7 @@ from random import randint
 
 # ----- classes -----
 
+Lplayers = []
 class Player:
     def __init__(self, name: str):
         self.name = name
@@ -43,12 +44,14 @@ class Player:
 
     def bankruptcy(self, creditor=None) -> None:
         totalValue = self.balance + sum(int(prop.price[0] + prop.houses * prop.price[1] / 2) for prop in self.hand)
-        print(f"totalValue: {totalValue}")
+        print(f"valeur du patrimoine + balance : {totalValue}")
         if totalValue < 0:
-            if not (creditor is None):
+            if creditor is not None:
                 creditor.balance += self.balance
+            Lplayers.remove(self)
             print("bah t'as perdu mec")
             # !!! défaite
+
         else:
             while True:
                 try:
@@ -103,7 +106,35 @@ class Player:
                     property.bonus = 1
             except (AssertionError, ValueError):
                 print('wrong input')
-    
+
+    def ask_exchange(self) -> None:
+        """je pense que ce qu'on devrait faire c'est de faire une fonction ask_exchange qui demande à un joueur s'il
+        veut faire une certaine offre sur une certaine propriété. donc ask_exchange est une partie du tour d'un joueur
+        exemple:
+        p1 fait une offre de valeur x sur une propriété prop à prop.owner donc p2
+        cette offre aurait donc comme info : la propriété(prop), le prix(x), l'acheteur(p1)"""
+        while True:
+            try:
+                val = map(int, input("Offre ?(-1 = stop or 'pos, price')").split())
+                pos = val[0]
+                if pos == -1:
+                    break
+                price = val[1]
+                # c chiant mais g pas le choix. si j'assigne de manière double ça marche si l'input vaut '-1'
+                property = Lcases[pos]
+                player2 = property.owner
+                assert player2 is not None
+                assert property.houses == 0
+                ans = bool(int(f"réponse à l'offre : {price}$ pour {property.name} de la part de {self.name} (0 = False/non, 1 = True/oui)"))
+                if ans:
+                    self.balance -= price
+                    player2.balance += price
+                    player2.hand.remove(property)
+                    self.hand.append(property)
+
+            except(ValueError, AssertionError):
+                print('wrong input')
+
     def play(self, dice1=randint(1,6), dice2=randint(1,6)) -> None:
         self.roll(dice1, dice2)
         self.ask_houses()
@@ -417,9 +448,7 @@ BOARDWALK = Property('BOARDWALK', 39, darkblue, [400, 200], {0: 50, 1: 200, 2: 6
 
 p = Player('p')
 p2 = Player('p2')
-p.play(30, 7)
-p.balance += 100000000000
-p.play(0, 2)
-p2.play(31, 0)
-p2.play(8, 0)
+p3 = Player('p3')
+p4 = Player('p4')
+Lplayers = [p, p2, p3, p4]
 
