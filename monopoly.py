@@ -15,7 +15,7 @@ class Player:
         self.jailCount = 0
         self.dicesVal = 0
 
-    def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)):#, houseAsk=True):
+    def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         if self.jailCount == 0:
             self.dicesVal = dice1 + dice2
             self.pos += self.dicesVal
@@ -29,9 +29,6 @@ class Player:
         else:
             print(f"jailCount : {self.jailCount}")
             self.location.action(self)
-
-        #if houseAsk:
-        #    self.ask_house()
 
         if dice1 == dice2:
             self.doubleCount += 1
@@ -59,9 +56,6 @@ class Player:
 
                     if self.balance >= 0:
                         break
-
-
-
 
                     ans = int(input(f"Where do you want to sell ? (enter the position)"))
                     property = Lcases[ans]
@@ -113,6 +107,7 @@ class Player:
     def play(self, dice1=randint(1,6), dice2=randint(1,6)) -> None:
         self.roll(dice1, dice2)
         self.ask_houses()
+
 
 Lcases = []
 class Box:
