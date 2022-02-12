@@ -112,10 +112,11 @@ class Player:
         veut faire une certaine offre sur une certaine propriété. donc ask_exchange est une partie du tour d'un joueur
         exemple:
         p1 fait une offre de valeur x sur une propriété prop à prop.owner donc p2
-        cette offre aurait donc comme info : la propriété(prop), le prix(x), l'acheteur(p1)"""
+        cette offre aurait donc comme info : la propriété (prop), le prix (x), l'acheteur (p1)"""
         while True:
             try:
-                val = map(int, input("Offre ?(-1 = stop or 'pos, price')").split())
+                val = [int(a) for a in input("Offre ?(-1 = stop or 'pos, price')").split()]
+                print('val marche')
                 pos = val[0]
                 if pos == -1:
                     break
@@ -124,18 +125,21 @@ class Player:
                 property = Lcases[pos]
                 player2 = property.owner
                 assert player2 is not None
+                print('player2 is not None')
                 assert property.houses == 0
-                ans = bool(int(f"réponse à l'offre : {price}$ pour {property.name} de la part de {self.name} (0 = False/non, 1 = True/oui)"))
+                print('blbblblblbl')
+                ans = int(input(f"réponse à l'offre : {price}$ pour {property.name} de la part de {self.name} (0 = False/non, 1 = True/oui)"))
                 if ans:
                     self.balance -= price
                     player2.balance += price
                     player2.hand.remove(property)
                     self.hand.append(property)
+                    property.owner = player2
 
-            except(ValueError, AssertionError):
+            except(ValueError, AssertionError, IndexError):
                 print('wrong input')
 
-    def play(self, dice1=randint(1,6), dice2=randint(1,6)) -> None:
+    def play(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         self.roll(dice1, dice2)
         self.ask_houses()
 
@@ -450,5 +454,5 @@ p = Player('p')
 p2 = Player('p2')
 p3 = Player('p3')
 p4 = Player('p4')
-Lplayers = [p, p2, p3, p4]
 
+Lplayers = [p, p2, p3, p4]
