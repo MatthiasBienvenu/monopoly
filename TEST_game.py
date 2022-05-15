@@ -20,7 +20,7 @@ print(c)
 # Load the config file, which is assumed to live in
 # the same directory as this script.
 local_dir = os.path.dirname(__file__)
-config_path = os.path.join(local_dir, 'config_bipedalWalker')
+config_path = os.path.join(local_dir, 'config_monopoly')
 config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                      neat.DefaultSpeciesSet, neat.DefaultStagnation,
                      config_path)
