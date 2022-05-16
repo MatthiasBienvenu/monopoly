@@ -5,8 +5,9 @@ from random import randint
 # ----- classes -----
 
 class Player:
-    def __init__(self, name: str):
+    def __init__(self, name: str, network=None):
         self.name = name
+        self.network = network
         self.doubleCount = 0
         self.balance = 1500
         self.hand = []
@@ -14,6 +15,17 @@ class Player:
         self.location = Lcases[0]
         self.jailCount = 0
         self.dicesVal = 0
+
+    def ask(self, observations):
+        # if self is a bot
+        if self.network:
+            action = self.network.activate(obervations)
+
+
+        # if self is a human
+        else:
+
+
 
     def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         if self.jailCount == 0:
@@ -80,7 +92,7 @@ class Player:
 
                 except (AssertionError, IndexError, ValueError):
                     print('wrong input')
-    
+
     def ask_houses(self) -> None:
         print('pouetpouetpouet')
         Lpos = [prop.pos for prop in self.hand]
@@ -140,7 +152,7 @@ class Player:
 
     def play(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         self.roll(dice1, dice2)
-        self.ask_houses()
+        self.ask()
 
 
 class Box:
@@ -232,7 +244,6 @@ def property_bonus(property: Property, player: Player) -> None:
         prop.bonus = 2
 
 
-Lrailroads = []
 def railroad_bonus(property: Property, player: Player) -> None:
     # multiplies the bonus by 2 for every railroad that a player holds
     Lowned = []
@@ -403,7 +414,7 @@ def reset():
         VIRGINIA_AVENUE, PENNSYLVANIA_RAILROAD, ST_JAMES_PLACE, COMMUNITY_CHEST2, TENNESSEE_AVENUE, NEW_YORK_AVENUE, FREE_PARKING, KENTUCKY_AVENUE, \
         CHANCE2, INDIANA_AVENUE, ILLINOIS_AVENUE, B_O_RAILROAD, ATLANTIC_AVENUE, VENTNOR_AVENUE, WATER_COMPANY, MARVIN_GARDENS, GO_TO_JAIL, PACIFIC_AVENUE, \
         NORTH_CAROLINA_AVENUE, COMMUNITY_CHEST3, PARK_PLACE, LUXURY_TAX, BOARDWALK, p1, p2, p3, p4, Lplayers, Lcases
-    
+
 
     brown = []
     skyblue = []
@@ -414,9 +425,10 @@ def reset():
     green = []
     darkblue = []
     companies = []
+    Lrailroads = []
 
     Lcases = []
-    
+
     GO = Special('GO', 0, go)
     MEDITERRANEAN_AVENUE = Property('MEDITERRANEAN_AVENUE', 1, brown, [60, 50], {0: 2, 1: 10, 2: 30, 3: 90, 4: 160, 5: 250}, property_bonus)
     COMMUNITY_CHEST1 = Special('COMMUNITY_CHEST', 2, community_chest)
@@ -464,5 +476,17 @@ def reset():
     p4 = Player('p4')
 
     Lplayers = [p1, p2, p3, p4]
-    
-reset()
+
+    return [Lcases, Lplayers]
+
+
+def play(player1, player2):
+
+def step():
+    # fait une partie avec 2 bots qui se battent pour leur vie sinon ils meurent
+    # cé lah lwa duh pluu phaur : lé plhuu phèbl ceu phon aikrazez
+    pass
+
+
+if __name__ == '__main__':
+    reset()
