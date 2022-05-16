@@ -4,7 +4,6 @@ from random import randint
 
 # ----- classes -----
 
-Lplayers = []
 class Player:
     def __init__(self, name: str):
         self.name = name
@@ -144,7 +143,6 @@ class Player:
         self.ask_houses()
 
 
-Lcases = []
 class Box:
     def __init__(self, name: str, pos: int):
         global Lcases
@@ -400,12 +398,13 @@ Lcomchest = [(go_to, 0), (money_transfer, 25), (money_transfer, 100), (money_tra
 # ----- env reset -----
 
 def reset():
-    global brown, skyblue, pink, orange, red, yellow, green, darkblue, companies, GO, MEDITERRANEAN_AVENUE, COMMUNITY_CHEST1, BALTIC_AVENUE, INCOME_TAX,
-        READING_RAILROAD, ORIENTAL_AVENUE, CHANCE1, VERMONT_AVENUE, CONNECTICUT_AVENUE, JAIL, ST_CHARLES_PLACE, ELECTRIC_COMPANY, STATES_AVENUE,
-        VIRGINIA_AVENUE, PENNSYLVANIA_RAILROAD, ST_JAMES_PLACE, COMMUNITY_CHEST2, TENNESSEE_AVENUE, NEW_YORK_AVENUE, FREE_PARKING, KENTUCKY_AVENUE,
-        CHANCE2, INDIANA_AVENUE, ILLINOIS_AVENUE, B_O_RAILROAD, ATLANTIC_AVENUE, VENTNOR_AVENUE, WATER_COMPANY, MARVIN_GARDENS, GO_TO_JAIL, PACIFIC_AVENUE,
-        NORTH_CAROLINA_AVENUE, COMMUNITY_CHEST3, PARK_PLACE, LUXURY_TAX, BOARDWALK, p1, p2, p3, p4, Lplayers
-        
+    global brown, skyblue, pink, orange, red, yellow, green, darkblue, companies, GO, MEDITERRANEAN_AVENUE, COMMUNITY_CHEST1, BALTIC_AVENUE, INCOME_TAX, \
+        READING_RAILROAD, ORIENTAL_AVENUE, CHANCE1, VERMONT_AVENUE, CONNECTICUT_AVENUE, JAIL, ST_CHARLES_PLACE, ELECTRIC_COMPANY, STATES_AVENUE, \
+        VIRGINIA_AVENUE, PENNSYLVANIA_RAILROAD, ST_JAMES_PLACE, COMMUNITY_CHEST2, TENNESSEE_AVENUE, NEW_YORK_AVENUE, FREE_PARKING, KENTUCKY_AVENUE, \
+        CHANCE2, INDIANA_AVENUE, ILLINOIS_AVENUE, B_O_RAILROAD, ATLANTIC_AVENUE, VENTNOR_AVENUE, WATER_COMPANY, MARVIN_GARDENS, GO_TO_JAIL, PACIFIC_AVENUE, \
+        NORTH_CAROLINA_AVENUE, COMMUNITY_CHEST3, PARK_PLACE, LUXURY_TAX, BOARDWALK, p1, p2, p3, p4, Lplayers, Lcases
+    
+
     brown = []
     skyblue = []
     pink = []
@@ -416,6 +415,8 @@ def reset():
     darkblue = []
     companies = []
 
+    Lcases = []
+    
     GO = Special('GO', 0, go)
     MEDITERRANEAN_AVENUE = Property('MEDITERRANEAN_AVENUE', 1, brown, [60, 50], {0: 2, 1: 10, 2: 30, 3: 90, 4: 160, 5: 250}, property_bonus)
     COMMUNITY_CHEST1 = Special('COMMUNITY_CHEST', 2, community_chest)
@@ -463,3 +464,5 @@ def reset():
     p4 = Player('p4')
 
     Lplayers = [p1, p2, p3, p4]
+    
+reset()
