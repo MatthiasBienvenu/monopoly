@@ -10,7 +10,52 @@ n = 100
 
 runs_per_net = 2
 
+'''
+network shape:
+12 inputs / 20 outputs
 
+input shape:
+1: Balance
+2: pos/40
+(possessed ratios in [0, 1])
+3: brown
+4: skyblue
+5: pink
+6: orange
+7: red
+8: yellow
+9: green
+10: darkblue
+11: companies
+12: Lrailroads
+
+output shape:
+(in [0, 1])
+1: buy?
+2: trade?
+(trade confidence ratios)
+3: brown
+4: skyblue
+5: pink
+6: orange
+7: red
+8: yellow
+9: green
+10: darkblue
+11: companies
+12: Lrailroads
+
+13: nHouses
+(house buying confidence ratios)
+14: brown
+15: skyblue
+16: pink
+17: orange
+18: red
+19: yellow
+20: green
+21: darkblue
+'''
 
 # Use the NN network phenotype and the discrete actuator force function.
 def eval_genome(genome, config):

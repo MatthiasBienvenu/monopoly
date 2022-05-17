@@ -16,17 +16,6 @@ class Player:
         self.jailCount = 0
         self.dicesVal = 0
 
-    def ask(self, observations):
-        # if self is a bot
-        if self.network:
-            action = self.network.activate(obervations)
-
-
-        # if self is a human
-        else:
-
-
-
     def roll(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         if self.jailCount == 0:
             self.dicesVal = dice1 + dice2
@@ -93,6 +82,8 @@ class Player:
                 except (AssertionError, IndexError, ValueError):
                     print('wrong input')
 
+
+class Human(Player):
     def ask_houses(self) -> None:
         print('pouetpouetpouet')
         Lpos = [prop.pos for prop in self.hand]
@@ -152,7 +143,17 @@ class Player:
 
     def play(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
         self.roll(dice1, dice2)
-        self.ask()
+        self.ask_exchange()
+        self.ask_houses()
+
+
+class Bot(Player):
+    def ask_bot(self, ):
+        action = self.network.activate(observation)
+
+    def play(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
+        self.roll(dice1, dice2)
+        self.ask_bot()
 
 
 class Box:
@@ -481,6 +482,7 @@ def reset():
 
 
 def play(player1, player2):
+
 
 def step():
     # fait une partie avec 2 bots qui se battent pour leur vie sinon ils meurent
