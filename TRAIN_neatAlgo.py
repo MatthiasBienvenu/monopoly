@@ -12,22 +12,32 @@ runs_per_net = 2
 
 '''
 network shape:
-12 inputs / 20 outputs
+21 inputs / 20 outputs
 
 input shape:
 1: Balance
-2: pos/40
+(group position 0 or 1)
+2: brown
+3: skyblue
+4: pink
+5: orange
+6: red
+7: yellow
+8: green
+9: darkblue
+10: companies
+11: Lrailroads
 (possessed ratios in [0, 1])
-3: brown
-4: skyblue
-5: pink
-6: orange
-7: red
-8: yellow
-9: green
-10: darkblue
-11: companies
-12: Lrailroads
+12: brown
+13: skyblue
+14: pink
+15: orange
+16: red
+17: yellow
+18: green
+19: darkblue
+20: companies
+21: Lrailroads
 
 output shape:
 (in [0, 1])
