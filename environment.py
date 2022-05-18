@@ -1,5 +1,5 @@
 # MONOPOLY VERSION USA
-from random import randint
+from random import randint, choices
 
 
 # ----- classes -----
@@ -122,8 +122,8 @@ class Player:
                        Lrailroads[0]
                        ]
 
-        if self.location.group_id:
-            observation[self.location.group_id + 1] = 1
+        if self.location.group:
+            observation[self.location.group.id + 1] = 1
 
         action = self.network.activate(observation)
         return action
@@ -135,21 +135,59 @@ class Player:
         # TRADE
         if round(action[1], 0) == 1.0:
             # if the bot wants to trade
-            confidences = action[2: 12]
-            sorted_requests = sorted([[confidence, group] for confidence, group in zip(confidences, Lgroups)])
+            trade_confidences = action[2: 12]
+            sorted_trade_requests = sorted([[confidence, group] for confidence, group in zip(trade_confidences, Lgroups)])
 
-            for confidence, group in sorted_requests:
+            for confidence, group in sorted_trade_requests:
                 for prop in group:
                     if prop.owner not in [None, self]:
                         # if prop is in the hand of an adversary
-                        price = prop.price[0] * (0.5 + group[0])
+                        price = prop.price[0] * (0.5 + group.bought_ratio)
                         if self.balance >= price:
                             prop.buy(self)
                             break
 
         # HOUSES
+        n_houses = action[12]
+        if n_houses:
+            # if the network wants to trade
+
+            house_confidences = action[13, 21]
+
+            Lhouses = [0 for _ in range(8)]
+            for _ in range(8):
+                index = choices(house_confidences, range(8))[0]
+                Lhouses[index] += 1
+
+            for i in range(8):
+                Lgroups[i].buy_houses(self.Lhouses[i])
 
 
+class Group:
+    def __init__(self, name: str, size: int, id: int):
+        self.name = name
+        self.size = size
+        self.id = id
+        self.list = []
+        self.bought_ratio = 0
+
+    def buy_houses(self, player, n):
+        Lhouses = [prop.houses for prop in self.list]
+
+        # find the index of the min of Lhouses prioritizing a bigger index
+        minval = 0
+        minindex = 2
+        for i in range(self.size):
+            if Lhouses[-i - 1] < minval:
+                minval = Lhouses[-i - 1]
+                minindex = self.size - i - 1
+
+        beginning_prop = self.list[minindex]
+        # if the max of houses has not been reached on all properties of self
+        while n != 0 and beginning_prop.houses < beginning_prop.max_houses and player.balance >= beginning_prop.price[1]:
+            index = (minindex - i) % self.size
+            self.list[index].houses += 1
+            player.balance -= beginning_prop.price[1]
 
 
 class Box:
@@ -161,7 +199,7 @@ class Box:
 
 
 class Property(Box):
-    def __init__(self, name: str, pos: int, group: list, price: list, rent: dict, update_bonus: callable):
+    def __init__(self, name: str, pos: int, group: Group, price: list, rent: dict, update_bonus: callable):
         # pos = int 0<=pos<=40 ; price = [priceCase, priceHouse]
         super().__init__(name, pos)
         self.houses = 0
@@ -169,21 +207,17 @@ class Property(Box):
         self.price = price
         self.rent = rent
         self.owner = None
-        self.group.append(self)
+        self.group.list.append(self)
         self.bonus = 1
         self.update_bonus = update_bonus
-        self.maxHouses = len(self.rent) - 1
-
-        for i in range(10):
-            if self.group == Lgroups[i]:
-                self.group_id = i
+        self.max_houses = len(self.rent) - 1
 
     def buy(self, player: Player) -> None:
         player.balance -= self.price[0]
         self.owner = player
         player.hand.append(self)
         self.update_bonus(self, player)
-        self.group[0] + 1/len(self.group-1)
+        self.group.bought_ratio + 1/self.group.size
 
 
     def pay(self, player: Player):
@@ -207,7 +241,8 @@ class Special(Box):
     def __init__(self, name: str, pos: int, action: callable):  # pos = int 0<=pos<=40
         super().__init__(name, pos)
         self.action = action
-        self.group_id = None
+        self.group = None
+
 
 
 # ----- functions for updating bonuses -----
@@ -320,7 +355,7 @@ def jail(player: Player) -> None:
             player.balance -= 50
             player.jailCount = 0
             print("t'as payé mec parce que tu forces")
-            player.roll()#houseAsk=False
+            player.roll()
             # !!! faillite
         else:
             player.jailCount += 1
@@ -399,16 +434,17 @@ def reset():
         PENNSYLVANIA_AVENUE, SHORT_LINE, CHANCE3, PARK_PLACE, LUXURY_TAX, BOARDWALK, p1, p2, Lplayers, Lcases, Lgroups
 
 
-    brown = [0.0]
-    skyblue = [0.0]
-    pink = [0.0]
-    orange = [0.0]
-    red = [0.0]
-    yellow = [0.0]
-    green = [0.0]
-    darkblue = [0.0]
-    companies = [0.0]
-    Lrailroads = [0.0]
+    brown = Group('brown', 2, 0)
+    skyblue = Group('skyblue', 3, 1)
+    pink = Group('pink', 3, 2)
+    orange = Group('orange', 3, 3)
+    red = Group('red', 3, 4)
+    yellow = Group('yellow', 3, 5)
+    green = Group('green', 3, 6)
+    darkblue = Group('darkblue', 2, 7)
+    companies = Group('companies', 2, 8)
+    Lrailroads = Group('railroads', 4, 9)
+
 
     Lcases = []
     Lgroups = [brown,
