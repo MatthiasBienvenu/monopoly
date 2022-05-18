@@ -160,7 +160,7 @@ class Player:
                 Lhouses[index] += 1
 
             for i in range(8):
-                Lgroups[i].buy_houses(self.Lhouses[i])
+                Lgroups[i].buy_houses(self, Lhouses[i])
 
 
 class Group:
@@ -508,7 +508,7 @@ def reset():
     return [Lcases, Lplayers]
 
 
-def play(player1, player2):
+def play_a_game(player1, player2):
     pass
 
 
