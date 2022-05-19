@@ -195,7 +195,7 @@ class Group:
         self.list = []
         self.bought_ratio = 0
 
-    def buy_houses(self, player, n):
+    def buy_houses(self, player, n) -> None:
         Lhouses = [prop.houses for prop in self.list]
 
         # find the index of the min of Lhouses prioritizing a bigger index
@@ -231,9 +231,10 @@ class Group:
         index = maxindex % self.size
         # if the max of houses has not been reached on all properties of self
         while last_prop.houses > 0 and player.balance < 0:
-            self.list[index].houses += 1
+            self.list[index].houses -= 1
             index = (index - 1) % self.size
             player.balance += last_prop.price[1]
+
 
 class Box:
     def __init__(self, name: str, pos: int):
