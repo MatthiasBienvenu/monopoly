@@ -1,6 +1,6 @@
 # MONOPOLY VERSION USA
 from random import randint, choices
-
+import numpy as np
 
 # ----- classes -----
 
@@ -38,7 +38,7 @@ class Player:
                 else:
                     location.pay(self)
                     if self.balance < 0:
-                        self.bankruptcy(location.owner)
+                        self.bankruptcy(bot_action, location.owner)
 
 
             else:
@@ -58,27 +58,52 @@ class Player:
         else:
             self.doubleCount = 0
 
-    def bankruptcy(self, creditor=None) -> None:
+    def bankruptcy(self, bot_action, creditor=None) -> None:
+        global Lplayers, done
         totalValue = self.balance + sum(int(prop.price[0] + prop.houses * prop.price[1] / 2) for prop in self.hand)
         print(f"valeur du patrimoine + balance : {totalValue}")
         if totalValue < 0:
             if creditor is not None:
                 creditor.balance += self.balance
             Lplayers.remove(self)
-            print("bah t'as perdu mec")
+            if len(Lplayers) == 1:
+                done = True
             # !!! défaite
 
-        else:
-            while True:
-                try:
-                    print(f"debt: {-self.balance}")
 
-                    if self.balance >= 0:
+        else:
+            conf_props = np.array(bot_action[2:12])
+            conf_houses = np.array(bot_action[13:21])
+            house_prices = np.array([group.list[0].price[1] for group in Lgroups])
+
+            n_houses = []
+            for _ in range(8):
+                n_houses.append(choices(range(8), 1/conf_houses))
+
+
+            for i in range(8):
+                group = n_houses[-i - 1]
+                house_price = group.list[0].price[1]
+
+
+                '''total_houses = 0
+                # breaks if all the props of group are owned by self
+                for prop in group.list:
+                    total_houses += prop.houses
+                    if prop.owner != self:
                         break
 
-                    ans = int(input(f"Where do you want to sell ? (enter the position)"))
-                    property = Lcases[ans]
-                    assert isinstance(property, Property) and property.owner == self
+                # number of houses to sell
+                n_houses = -self.balance // house_price + 1
+                if n_houses > total_houses:
+                    for prop in group.list:
+                        prop.houses = 0'''
+
+                    self.balance += house_price * total_houses
+
+
+
+                    property.owner == self
 
                     for prop in property.group:
                         if prop.houses > property.houses:
@@ -95,8 +120,7 @@ class Player:
                         self.balance += int(property.price[1] / 2)
                         print(int(property.price[1] / 2))
 
-                except (AssertionError, IndexError, ValueError):
-                    print('wrong input')
+                    k += 1
 
     def ask_bot(self) -> list:
         observation = [self.balance,
@@ -155,7 +179,7 @@ class Player:
             house_confidences = action[13, 21]
 
             Lhouses = [0 for _ in range(8)]
-            for _ in range(8):
+            for _ in range(n_houses):
                 index = choices(house_confidences, range(8))[0]
                 Lhouses[index] += 1
 
@@ -175,20 +199,41 @@ class Group:
         Lhouses = [prop.houses for prop in self.list]
 
         # find the index of the min of Lhouses prioritizing a bigger index
-        minval = 0
+        minval = 5
         minindex = 2
         for i in range(self.size):
             if Lhouses[-i - 1] < minval:
                 minval = Lhouses[-i - 1]
                 minindex = self.size - i - 1
 
-        beginning_prop = self.list[minindex]
-        # if the max of houses has not been reached on all properties of self
-        while n != 0 and beginning_prop.houses < beginning_prop.max_houses and player.balance >= beginning_prop.price[1]:
-            index = (minindex - i) % self.size
-            self.list[index].houses += 1
-            player.balance -= beginning_prop.price[1]
 
+        first_prop = self.list[minindex - self.size + 1]
+        index = minindex % self.size
+        # if the max of houses has not been reached on all properties of self
+        while n != 0 and first_prop.houses < first_prop.max_houses and player.balance >= first_prop.price[1]:
+            self.list[index].houses += 1
+            index = (index - 1) % self.size
+            n -= 1
+            player.balance -= first_prop.price[1]
+
+    def sell_houses(self, player):
+        Lhouses = [prop.houses for prop in self.list]
+
+        # find the index of the max of Lhouses prioritizing a smaller index
+        maxval = 0
+        maxindex = 0
+        for i in range(self.size):
+            if Lhouses[i] > maxval:
+                maxval = Lhouses[i]
+                maxindex = i
+
+        last_prop = self.list[2]
+        index = maxindex % self.size
+        # if the max of houses has not been reached on all properties of self
+        while last_prop.houses > 0 and player.balance < 0:
+            self.list[index].houses += 1
+            index = (index - 1) % self.size
+            player.balance += last_prop.price[1]
 
 class Box:
     def __init__(self, name: str, pos: int):
@@ -242,7 +287,6 @@ class Special(Box):
         super().__init__(name, pos)
         self.action = action
         self.group = None
-
 
 
 # ----- functions for updating bonuses -----
@@ -501,15 +545,20 @@ def reset():
 
     p1 = Player('p1', None)
     p2 = Player('p2', None)
-
-
     Lplayers = [p1, p2]
 
     return [Lcases, Lplayers]
 
 
-def play_a_game(player1, player2):
-    pass
+def play_a_game(Lplayers):
+    global done
+    done = False
+    n = 0
+    while not done and n < 100:
+        p1.play()
+        p2.play()
+        n += 1
+    return Lplayers[0]
 
 
 def step():
