@@ -12,10 +12,11 @@ runs_per_net = 2
 
 '''
 network shape:
-21 inputs / 20 outputs
+22 inputs / 21 outputs
 
 input shape:
-1: Balance
+0: Balance
+1: pos
 (group position 0 or 1)
 2: brown
 3: skyblue
@@ -26,7 +27,7 @@ input shape:
 8: green
 9: darkblue
 10: companies
-11: Lrailroads
+11: railroads
 (possessed ratios in [0, 1])
 12: brown
 13: skyblue
@@ -37,34 +38,34 @@ input shape:
 18: green
 19: darkblue
 20: companies
-21: Lrailroads
+21: railroads
 
 output shape:
 (in [0, 1])
-1: buy?
-2: trade?
+0: buy?
+1: trade?
 (trade confidence ratios)
-3: brown
-4: skyblue
-5: pink
-6: orange
-7: red
-8: yellow
-9: green
-10: darkblue
-11: companies
-12: Lrailroads
+2: brown
+3: skyblue
+4: pink
+5: orange
+6: red
+7: yellow
+8: green
+9: darkblue
+10: companies
+11: railroads
 
-13: nHouses
+12: nHouses
 (house buying confidence ratios)
-14: brown
-15: skyblue
-16: pink
-17: orange
-18: red
-19: yellow
-20: green
-21: darkblue
+13: brown
+14: skyblue
+15: pink
+16: orange
+17: red
+18: yellow
+19: green
+20: darkblue
 '''
 
 # Use the NN network phenotype and the discrete actuator force function.
