@@ -1,12 +1,11 @@
 import multiprocessing
 import os
 import pickle
-
+import monopoly.environment as env
 import neat
 import numpy as np
-import gym
 
-n = 100
+n = 1000
 
 runs_per_net = 2
 
@@ -68,32 +67,44 @@ output shape:
 20: darkblue
 '''
 
-# Use the NN network phenotype and the discrete actuator force function.
-def eval_genome(genome, config):
-    net = neat.nn.FeedForwardNetwork.create(genome, config)
+class ParallelEvaluator(object):
+    def __init__(self, num_workers, timeout=None, maxtasksperchild=None):
+        self.timeout = timeout
+        self.pool = multiprocessing.Pool(processes=num_workers, maxtasksperchild=maxtasksperchild)
 
-    fitnesses = []
+    def __del__(self):
+        self.pool.close()
+        self.pool.join()
+        self.pool.terminate()
 
-    for runs in range(runs_per_net):
-        env = gym.make("BipedalWalker-v3")
-
-        observation = env.reset()
-        fitness = 0.0
-        done = False
-        while not done:
-
-            action = net.activate(observation)
-            observation, reward, done, info = env.step(action)
-            fitness += reward
-
-        fitnesses.append(fitness)
-
-    return np.mean(fitnesses)
+    def evaluate(self, genomes, config):
+        genomes_dict = {}
+        for gen_id, genome in genomes:
+            genome.fitness = 1
+            genomes_dict[gen_id] = genome
 
 
-def eval_genomes(genomes, config):
-    for genome_id, genome in genomes:
-        genome.fitness = eval_genome(genome, config)
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+
+        duels = [[genomes[2*i], genomes[2*i + 1]] for i in range(int(len(genomes) / 2))]
+        print(duels)
+
+        # population size is 128 = 2**7
+        # so we can do 7 rounds of duels
+        # each time a genome goes to the next round,
+        # its fitness is multiplied by 1.5
+        for n in range(7):
+            jobs = [pool.apply_async(env.play_a_game, (duel[0], duel[1], config)) for duel in duels]
+
+            winners = [job.get() for job in jobs]
+
+            for gen_id, genome in winners:
+                # modified version of the sigmoid function
+                genomes_dict[gen_id].fitness = 1 / (1 + np.exp(-n + 3.5))*100
+
+            duels = [[winners[2*i], winners[2*i + 1]] for i in range(int(len(winners) / 2))]
+
+        genomes = list(genomes_dict.items())
 
 
 def run():
@@ -107,7 +118,7 @@ def run():
 
     try:
         # load the last checkpoint
-        pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-2')
+        pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-988')
     except:
         # create a new population from scratch
         pop = neat.Population(config)
@@ -115,10 +126,11 @@ def run():
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
     pop.add_reporter(neat.StdOutReporter(True))
-    pop.add_reporter(neat.Checkpointer(10, filename_prefix='neat-checkpoint-'))
+    pop.add_reporter(neat.Checkpointer(100, filename_prefix='neat-checkpoint-'))
 
-    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), eval_genome)
+    pe = ParallelEvaluator(multiprocessing.cpu_count())
     winner = pop.run(pe.evaluate, n)
+
 
     # Save the winner.
     with open('winner', 'wb') as f:

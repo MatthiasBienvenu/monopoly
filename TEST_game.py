@@ -1,7 +1,7 @@
 import os
 import pickle
 import neat
-import gym 
+import monopoly.environment as env
 import numpy as np
 
 try:
@@ -10,9 +10,9 @@ try:
         c = pickle.load(f)
 except:
     # load the best genome of the last checkpoint
-    pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-2').population
-    i = max(pop.keys())
-    c = pop[i]
+    loaded_pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-1679')
+
+    c = loaded_pop.best_genome
 
 print('Loaded genome:')
 print(c)
@@ -28,12 +28,20 @@ config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
 net = neat.nn.FeedForwardNetwork.create(c, config)
 
 
-env = gym.make("BipedalWalker-v3")
+
 observation = env.reset()
+Lwinner = []
+for _ in range(1):
+    try:
+        pop = neat.Checkpointer.restore_checkpoint('neat-checkpoint-988')
+        print('POPULATION LOADED')
 
-done = False
-while not done:
-    action = net.activate(observation)
+    except:
+        print('GENERATE A NEW POPULATION')
+        pop = neat.Population(config)
+    for gen in pop.population.items():
+        winner = env.play_a_game((1, c), gen, config)
+        print(winner)
+        Lwinner.append(winner[0])
 
-    observation, reward, done, info = env.step(action)
-    env.render()
+print(f'\nWin rate :{Lwinner.count(1) / len(Lwinner)}')

@@ -1,8 +1,11 @@
 # MONOPOLY VERSION USA
-from random import randint, choices
 import numpy as np
+import random
+import time
+import neat
 
 # ----- classes -----
+
 
 class Player:
     def __init__(self, name: str, network):
@@ -16,8 +19,12 @@ class Player:
         self.jailCount = 0
         self.dicesVal = 0
 
-    def roll(self, bot_action, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
-        print(f'dices: {dice1}, {dice2}')
+    def roll(self, bot_action, dice1=0, dice2=0) -> None:
+        if [dice1, dice2] == [0, 0]:
+            dice1 = random.randint(1, 6)
+            dice2 = random.randint(1, 6)
+
+        # print(f'dices: {dice1}, {dice2}')
         if self.jailCount == 0:
             self.dicesVal = dice1 + dice2
             self.pos += self.dicesVal
@@ -27,14 +34,15 @@ class Player:
                 self.pos -= 40
             location: Box = Lcases[self.pos]
             self.location = location
-            print(self.pos, location.name)
+            # print(self.pos, location.name)
 
             self.location.action(self, bot_action)
         else:
-            print(f"jailCount : {self.jailCount}")
+            # print(f"jailCount : {self.jailCount}")
             self.location.action(self, bot_action)
 
-        if dice1 == dice2:
+        global done
+        if dice1 == dice2 and not done:
             self.doubleCount += 1
             if self.doubleCount == 3:
                 self.doubleCount = 0
@@ -48,7 +56,7 @@ class Player:
     def bankruptcy(self, bot_action) -> None:
         global Lplayers, done
         totalValue = self.balance + sum([int((prop.price[0] + prop.houses * prop.price[1]) / 2) for prop in self.hand])
-        print(f"valeur du patrimoine + balance : {totalValue}")
+        # print(f"valeur du patrimoine + balance : {totalValue}")
         if totalValue < 0:
             Lplayers.remove(self)
             if len(Lplayers) == 1:
@@ -113,22 +121,30 @@ class Player:
         action = self.network.activate(observation)
         return action
 
-    def play(self, dice1=randint(1, 6), dice2=randint(1, 6)) -> None:
+    def play(self, dice1=0, dice2=0) -> None:
+        # cannot write dice1=random.randint(1,6) because it's not random anymore
+        if [dice1, dice2] == [0, 0]:
+            dice1 = random.randint(1, 6)
+            dice2 = random.randint(1, 6)
+
         bot_action = self.ask_bot()
         self.roll(bot_action, dice1, dice2)
 
         # TRADE
-        if round(bot_action[1], 0) == 1.0:
+        if round(bot_action[1], 0):
             # if the bot wants to trade
             trade_confidences = bot_action[2: 12]
             sorted_trade_requests = sorted(list(zip(trade_confidences, Lgroups)), key=lambda x: x[0])
 
+            bought = False
             for confidence, group in sorted_trade_requests:
                 for prop in group.list:
                     if prop.owner not in [None, self]:
                         # if prop is in the hand of an adversary
                         price = int(prop.price[0] * (0.5 + group.bought_ratio))
                         if self.balance >= price:
+                            # print(f'{self.name} bought {prop.name} from {prop.owner.name}')
+
                             old_owner = prop.owner
                             prop.owner = self
 
@@ -139,7 +155,11 @@ class Player:
                             old_owner.hand.remove(prop)
 
                             prop.update_bonus(prop, self)
+
+                            bought = True
                             break
+                if bought:
+                    break
 
         # HOUSES
         n_houses = int((bot_action[12] + 1) * 10 // 2)
@@ -152,7 +172,7 @@ class Player:
             if np.all([house_confidences, np.zeros(8)]):
                 Lhouses = [0 for _ in range(8)]
                 for _ in range(n_houses):
-                    index = choices(range(8), house_confidences)[0]
+                    index = random.choices(range(8), house_confidences)[0]
                     Lhouses[index] += 1
 
                 for i in range(8):
@@ -233,17 +253,18 @@ class Property(Box):
     def action(self, player: Player, bot_action):
         # player pays to self.owner or player buys or not the property
 
-        if self.owner is None and round(bot_action[0], 0):
+        if self.owner is None:
             if player.balance >= self.price[0]:
-                player.balance -= self.price[0]
-                self.owner = player
-                player.hand.append(self)
-                self.update_bonus(self, player)
-                self.group.bought_ratio += (1 / self.group.size)
+                if round(bot_action[0], 0):
+                    player.balance -= self.price[0]
+                    self.owner = player
+                    player.hand.append(self)
+                    self.update_bonus(self, player)
+                    self.group.bought_ratio += (1 / self.group.size)
 
         # !!! faillite
         else:
-            print('paie')
+            # print('paie')
             if self.houses == 0:
                 if self.pos in [12, 28]:
                     # 12 and 28 correspond to the positions of the two companies
@@ -313,9 +334,9 @@ def go(player: Player, bot_action) -> None:
 
 
 def chance(player: Player, bot_action) -> None:
-    i = randint(0, 15)
+    i = random.randint(0, 15)
     card = Lchance[i]
-    print(card[0].__name__, card[1])
+    # print(card[0].__name__, card[1])
     f = card[0]
     attribute = card[1]
     f.attribute = attribute
@@ -325,9 +346,9 @@ def chance(player: Player, bot_action) -> None:
 
 
 def community_chest(player: Player, bot_action) -> None:
-    i = randint(0, 15)
+    i = random.randint(0, 15)
     card = Lcomchest[i]
-    print(card[0].__name__, card[1])
+    # print(card[0].__name__, card[1])
     f = card[0]
     attribute = card[1]
     f.attribute = attribute
@@ -368,20 +389,21 @@ def free_parking(player: Player, bot_action) -> None:
 
 def jail(player: Player, bot_action) -> None:
     if player.jailCount >= 0:
-        dice1 = randint(1, 6)
-        dice2 = randint(1, 6)
-        print(f"dice1 : {dice1}, dice 2 : {dice2}")
+        dice1 = random.randint(1, 6)
+        dice2 = random.randint(1, 6)
+        # print(f"dice1 : {dice1}, dice 2 : {dice2}")
         if dice1 == dice2:
-            print('double => sorti de prison')
+            # print('double => sorti de prison')
             player.jailCount = 0
-            player.roll(dice1, dice2)
+            player.roll(bot_action, dice1, dice2)
         elif player.jailCount == 3:
             player.balance -= 50
             player.jailCount = 0
-            print('nombre de tours dépassé => payé puis sorti de prison')
+            # print('nombre de tours dépassé => payé puis sorti de prison')
             player.roll(bot_action)
             # !!! faillite
-            if player.balance < 0:
+            global done
+            if player.balance < 0 and not done:
                 player.bankruptcy(bot_action)
         else:
             player.jailCount += 1
@@ -534,20 +556,49 @@ def reset():
     return [Lcases, Lplayers]
 
 
-def play_a_game(network1, network2):
+def play_a_game(genome1, genome2, config):
     global done, p1, p2, Lplayers
-    p1.network = network1
-    p2.network = network2
+    reset()
+    p1.network = neat.nn.FeedForwardNetwork.create(genome1[1], config)
+    p2.network = neat.nn.FeedForwardNetwork.create(genome2[1], config)
     done = False
     n = 0
     while not done and n < 1000:
-        print('\n--- TOUR DE p1 ---')
+        # print('\n--- TOUR DE p1 ---')
         p1.play()
-        print('\n--- TOUR DE p2 ---')
+        # print('\n--- TOUR DE p2 ---')
         p2.play()
         n += 1
-    print(f'\nFIN DE LA PARTIE\nvictoire de {Lplayers[0].name}\nnombre de tours : {n}')
-    return Lplayers[0]
+    '''
+    if n == 1000:
+        print(f'\nFIN DE LA PARTIE\négalité\nnombre de tours : {n}')
+    else:
+        print(f'\nFIN DE LA PARTIE\nvictoire de {Lplayers[0].name}\nnombre de tours : {n}')
+    '''
+    return genome1 if Lplayers[0] == p1 else genome2
+
+
+def test_a_game(genome1, genome2, config):
+    global done, p1, p2, Lplayers
+    reset()
+    p1.network = neat.nn.FeedForwardNetwork.create(genome1[1], config)
+    p2.network = neat.nn.FeedForwardNetwork.create(genome2[1], config)
+    done = False
+    n = 0
+    while not done and n < 1000:
+        # print('\n--- TOUR DE p1 ---')
+        p1.play()
+        # print('\n--- TOUR DE p2 ---')
+        p2.play()
+        n += 1
+    '''
+    if n == 1000:
+        print(f'\nFIN DE LA PARTIE\négalité\nnombre de tours : {n}')
+    else:
+        print(f'\nFIN DE LA PARTIE\nvictoire de {Lplayers[0].name}\nnombre de tours : {n}')
+    '''
+    return genome1 if Lplayers[0] == p1 else genome2
+
 
 
 if __name__ == '__main__':
