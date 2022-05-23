@@ -600,6 +600,5 @@ def test_a_game(genome1, genome2, config):
     return genome1 if Lplayers[0] == p1 else genome2
 
 
-
 if __name__ == '__main__':
     reset()
