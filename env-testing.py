@@ -26,6 +26,6 @@ for _ in range(100):
     gen2 = pop.population[2]
     net1 = neat.nn.FeedForwardNetwork.create(gen1, config)
     net2 = neat.nn.FeedForwardNetwork.create(gen2, config)
-    env.play_a_game(net1, net2)
+    env.play_a_game(net1, net2, config)
 
 print(time.time() - t)
